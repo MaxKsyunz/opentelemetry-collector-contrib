@@ -56,14 +56,6 @@ func TestExporter_New(t *testing.T) {
 		}
 	}
 
-	failWithMessage := func(msg string) validate {
-		return func(t *testing.T, exporter *elasticsearchLogsExporter, err error) {
-			require.Nil(t, exporter)
-			require.NotNil(t, err)
-			require.Contains(t, err.Error(), msg)
-		}
-	}
-
 	tests := map[string]struct {
 		config *Config
 		want   validate
@@ -90,25 +82,6 @@ func TestExporter_New(t *testing.T) {
 				cfg.Endpoints = []string{"test:9200"}
 			}),
 			want: successWithDeprecatedIndexOption("foo-index"),
-		},
-		"create with cloudid": {
-			config: withDefaultConfig(func(cfg *Config) {
-				cfg.CloudID = "foo:YmFyLmNsb3VkLmVzLmlvJGFiYzEyMyRkZWY0NTY="
-			}),
-			want: success,
-		},
-		"create with invalid cloudid": {
-			config: withDefaultConfig(func(cfg *Config) {
-				cfg.CloudID = "invalid"
-			}),
-			want: failWithMessage("cannot parse CloudID"),
-		},
-		"fail if endpoint and cloudid are set": {
-			config: withDefaultConfig(func(cfg *Config) {
-				cfg.Endpoints = []string{"test:9200"}
-				cfg.CloudID = "foo:YmFyLmNsb3VkLmVzLmlvJGFiYzEyMyRkZWY0NTY="
-			}),
-			want: failWithMessage("Addresses and CloudID are set"),
 		},
 		"create with custom request header": {
 			config: withDefaultConfig(func(cfg *Config) {

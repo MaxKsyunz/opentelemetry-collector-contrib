@@ -20,16 +20,14 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
+	"github.com/cenkalti/backoff/v4"
 	"io"
-	"net"
 	"net/http"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
-	elasticsearch "github.com/elastic/go-elasticsearch/v8"
-	esutil "github.com/elastic/go-elasticsearch/v8/esutil"
+	elasticsearch "github.com/opensearch-project/opensearch-go/v2"
+	esutil "github.com/opensearch-project/opensearch-go/v2/opensearchutil"
 	"go.uber.org/zap"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/common/sanitize"
@@ -97,11 +95,8 @@ func newElasticsearchClient(logger *zap.Logger, config *Config) (*esClientCurren
 	// including the first send and additional retries.
 	maxRetries := config.Retry.MaxRequests - 1
 	retryDisabled := !config.Retry.Enabled || maxRetries <= 0
-	retryOnError := newRetryOnErrorFunc(retryDisabled)
-
 	if retryDisabled {
 		maxRetries = 0
-		retryOnError = nil
 	}
 
 	return elasticsearch.NewClient(esConfigCurrent{
@@ -109,16 +104,13 @@ func newElasticsearchClient(logger *zap.Logger, config *Config) (*esClientCurren
 
 		// configure connection setup
 		Addresses: config.Endpoints,
-		CloudID:   config.CloudID,
 		Username:  config.Authentication.User,
 		Password:  string(config.Authentication.Password),
-		APIKey:    string(config.Authentication.APIKey),
 		Header:    headers,
 
 		// configure retry behavior
 		RetryOnStatus: retryOnStatus,
 		DisableRetry:  retryDisabled,
-		RetryOnError:  retryOnError,
 		MaxRetries:    maxRetries,
 		RetryBackoff:  createElasticsearchBackoffFunc(&config.Retry),
 
@@ -132,28 +124,6 @@ func newElasticsearchClient(logger *zap.Logger, config *Config) (*esClientCurren
 		Logger:            (*clientLogger)(logger),
 	})
 }
-func newRetryOnErrorFunc(retryDisabled bool) func(_ *http.Request, err error) bool {
-	if retryDisabled {
-		return func(_ *http.Request, err error) bool {
-			return false
-		}
-	}
-
-	return func(_ *http.Request, err error) bool {
-		var netError net.Error
-		shouldRetry := false
-
-		if isNetError := errors.As(err, &netError); isNetError && netError != nil {
-			// on Timeout (Proposal: predefined configuratble rules)
-			if !netError.Timeout() {
-				shouldRetry = true
-			}
-		}
-
-		return shouldRetry
-	}
-}
-
 func newTransport(config *Config, tlsCfg *tls.Config) *http.Transport {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
 	if tlsCfg != nil {

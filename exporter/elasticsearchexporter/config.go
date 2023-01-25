@@ -37,16 +37,12 @@ type Config struct {
 	// CloudID holds the cloud ID to identify the Elastic Cloud cluster to send events to.
 	// https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html
 	//
-	// This setting is required if no URL is configured.
-	CloudID string `mapstructure:"cloudid"`
 
 	// NumWorkers configures the number of workers publishing bulk requests.
 	NumWorkers int `mapstructure:"num_workers"`
 
 	// Index configures the index, index alias, or data stream name events should be indexed in.
 	//
-	// https://www.elastic.co/guide/en/elasticsearch/reference/current/indices.html
-	// https://www.elastic.co/guide/en/elasticsearch/reference/current/data-streams.html
 	//
 	// Deprecated: `index` is deprecated and replaced with `logs_index`.
 	Index string `mapstructure:"index"`
@@ -174,7 +170,7 @@ const (
 )
 
 var (
-	errConfigNoEndpoint    = errors.New("endpoints or cloudid must be specified")
+	errConfigNoEndpoint    = errors.New("endpoints must be specified")
 	errConfigEmptyEndpoint = errors.New("endpoints must not include empty entries")
 )
 
@@ -209,7 +205,7 @@ const defaultElasticsearchEnvName = "ELASTICSEARCH_URL"
 
 // Validate validates the elasticsearch server configuration.
 func (cfg *Config) Validate() error {
-	if len(cfg.Endpoints) == 0 && cfg.CloudID == "" {
+	if len(cfg.Endpoints) == 0 {
 		if os.Getenv(defaultElasticsearchEnvName) == "" {
 			return errConfigNoEndpoint
 		}
