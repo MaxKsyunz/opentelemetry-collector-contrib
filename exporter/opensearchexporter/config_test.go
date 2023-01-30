@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package elasticsearchexporter
+package opensearchexporter
 
 import (
 	"path/filepath"
@@ -37,7 +37,6 @@ func TestLoad_DeprecatedIndexConfigOption(t *testing.T) {
 
 	assert.Equal(t, cfg, &Config{
 		Endpoints:   []string{"http://localhost:9200"},
-		CloudID:     "TRNMxjXlNJEt",
 		Index:       "my_log_index",
 		LogsIndex:   "logs-generic-default",
 		TracesIndex: "traces-generic-default",
@@ -94,7 +93,6 @@ func TestLoadConfig(t *testing.T) {
 			id: component.NewIDWithName(typeStr, "trace"),
 			expected: &Config{
 				Endpoints:   []string{"https://elastic.example.com:9200"},
-				CloudID:     "TRNMxjXlNJEt",
 				Index:       "",
 				LogsIndex:   "logs-generic-default",
 				TracesIndex: "trace_index",
@@ -133,7 +131,6 @@ func TestLoadConfig(t *testing.T) {
 			id: component.NewIDWithName(typeStr, "log"),
 			expected: &Config{
 				Endpoints:   []string{"http://localhost:9200"},
-				CloudID:     "TRNMxjXlNJEt",
 				Index:       "",
 				LogsIndex:   "my_log_index",
 				TracesIndex: "traces-generic-default",

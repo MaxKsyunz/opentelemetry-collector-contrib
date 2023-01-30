@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package elasticsearchexporter // import "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/elasticsearchexporter"
+package opensearchexporter // import "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/opensearchexporter"
 
 import (
 	"errors"
@@ -30,15 +30,8 @@ type Config struct {
 
 	// Endpoints holds the Elasticsearch URLs the exporter should send events to.
 	//
-	// This setting is required if CloudID is not set and if the
 	// ELASTICSEARCH_URL environment variable is not set.
 	Endpoints []string `mapstructure:"endpoints"`
-
-	// CloudID holds the cloud ID to identify the Elastic Cloud cluster to send events to.
-	// https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html
-	//
-	// This setting is required if no URL is configured.
-	CloudID string `mapstructure:"cloudid"`
 
 	// NumWorkers configures the number of workers publishing bulk requests.
 	NumWorkers int `mapstructure:"num_workers"`
@@ -209,7 +202,7 @@ const defaultElasticsearchEnvName = "ELASTICSEARCH_URL"
 
 // Validate validates the elasticsearch server configuration.
 func (cfg *Config) Validate() error {
-	if len(cfg.Endpoints) == 0 && cfg.CloudID == "" {
+	if len(cfg.Endpoints) == 0 {
 		if os.Getenv(defaultElasticsearchEnvName) == "" {
 			return errConfigNoEndpoint
 		}

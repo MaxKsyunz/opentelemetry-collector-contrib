@@ -12,34 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package elasticsearchexporter contains an opentelemetry-collector exporter
+// Package opensearchexporter contains an opentelemetry-collector exporter
 // for Elasticsearch.
-package elasticsearchexporter // import "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/elasticsearchexporter"
+package opensearchexporter // import "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/opensearchexporter"
 
 import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
+	"github.com/cenkalti/backoff"
 	"io"
-	"net"
 	"net/http"
 	"time"
 
-	"github.com/cenkalti/backoff/v4"
-	elasticsearch "github.com/elastic/go-elasticsearch/v8"
-	esutil "github.com/elastic/go-elasticsearch/v8/esutil"
+	opensearch "github.com/opensearch-project/opensearch-go/v2"
+	opensearchutil "github.com/opensearch-project/opensearch-go/v2/opensearchutil"
 	"go.uber.org/zap"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/common/sanitize"
 )
 
-type esClientCurrent = elasticsearch.Client
-type esConfigCurrent = elasticsearch.Config
-type esBulkIndexerCurrent = esutil.BulkIndexer
-type esBulkIndexerItem = esutil.BulkIndexerItem
-type esBulkIndexerResponseItem = esutil.BulkIndexerResponseItem
+type osClientCurrent = opensearch.Client
+type osConfigCurrent = opensearch.Config
+type osBulkIndexerCurrent = opensearchutil.BulkIndexer
+type osBulkIndexerItem = opensearchutil.BulkIndexerItem
+type osBulkIndexerResponseItem = opensearchutil.BulkIndexerResponseItem
 
 // clientLogger implements the estransport.Logger interface
 // that is required by the Elasticsearch client for logging.
@@ -76,7 +74,7 @@ func (*clientLogger) ResponseBodyEnabled() bool {
 	return false
 }
 
-func newElasticsearchClient(logger *zap.Logger, config *Config) (*esClientCurrent, error) {
+func newElasticsearchClient(logger *zap.Logger, config *Config) (*osClientCurrent, error) {
 	tlsCfg, err := config.TLSClientSetting.LoadTLSConfig()
 	if err != nil {
 		return nil, err
@@ -97,28 +95,23 @@ func newElasticsearchClient(logger *zap.Logger, config *Config) (*esClientCurren
 	// including the first send and additional retries.
 	maxRetries := config.Retry.MaxRequests - 1
 	retryDisabled := !config.Retry.Enabled || maxRetries <= 0
-	retryOnError := newRetryOnErrorFunc(retryDisabled)
 
 	if retryDisabled {
 		maxRetries = 0
-		retryOnError = nil
 	}
 
-	return elasticsearch.NewClient(esConfigCurrent{
+	return opensearch.NewClient(osConfigCurrent{
 		Transport: transport,
 
 		// configure connection setup
 		Addresses: config.Endpoints,
-		CloudID:   config.CloudID,
 		Username:  config.Authentication.User,
 		Password:  string(config.Authentication.Password),
-		APIKey:    string(config.Authentication.APIKey),
 		Header:    headers,
 
 		// configure retry behavior
 		RetryOnStatus: retryOnStatus,
 		DisableRetry:  retryDisabled,
-		RetryOnError:  retryOnError,
 		MaxRetries:    maxRetries,
 		RetryBackoff:  createElasticsearchBackoffFunc(&config.Retry),
 
@@ -131,27 +124,6 @@ func newElasticsearchClient(logger *zap.Logger, config *Config) (*esClientCurren
 		EnableDebugLogger: false, // TODO
 		Logger:            (*clientLogger)(logger),
 	})
-}
-func newRetryOnErrorFunc(retryDisabled bool) func(_ *http.Request, err error) bool {
-	if retryDisabled {
-		return func(_ *http.Request, err error) bool {
-			return false
-		}
-	}
-
-	return func(_ *http.Request, err error) bool {
-		var netError net.Error
-		shouldRetry := false
-
-		if isNetError := errors.As(err, &netError); isNetError && netError != nil {
-			// on Timeout (Proposal: predefined configuratble rules)
-			if !netError.Timeout() {
-				shouldRetry = true
-			}
-		}
-
-		return shouldRetry
-	}
 }
 
 func newTransport(config *Config, tlsCfg *tls.Config) *http.Transport {
@@ -169,9 +141,9 @@ func newTransport(config *Config, tlsCfg *tls.Config) *http.Transport {
 	return transport
 }
 
-func newBulkIndexer(logger *zap.Logger, client *elasticsearch.Client, config *Config) (esBulkIndexerCurrent, error) {
+func newBulkIndexer(logger *zap.Logger, client *opensearch.Client, config *Config) (osBulkIndexerCurrent, error) {
 	// TODO: add debug logger
-	return esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
+	return opensearchutil.NewBulkIndexer(opensearchutil.BulkIndexerConfig{
 		NumWorkers:    config.NumWorkers,
 		FlushBytes:    config.Flush.Bytes,
 		FlushInterval: config.Flush.Interval,
@@ -217,13 +189,13 @@ func shouldRetryEvent(status int) bool {
 	return false
 }
 
-func pushDocuments(ctx context.Context, logger *zap.Logger, index string, document []byte, bulkIndexer esBulkIndexerCurrent, maxAttempts int) error {
+func pushDocuments(ctx context.Context, logger *zap.Logger, index string, document []byte, bulkIndexer osBulkIndexerCurrent, maxAttempts int) error {
 	attempts := 1
 	body := bytes.NewReader(document)
-	item := esBulkIndexerItem{Action: createAction, Index: index, Body: body}
+	item := osBulkIndexerItem{Action: createAction, Index: index, Body: body}
 	// Setup error handler. The handler handles the per item response status based on the
 	// selective ACKing in the bulk response.
-	item.OnFailure = func(ctx context.Context, item esBulkIndexerItem, resp esBulkIndexerResponseItem, err error) {
+	item.OnFailure = func(ctx context.Context, item osBulkIndexerItem, resp osBulkIndexerResponseItem, err error) {
 		switch {
 		case attempts < maxAttempts && shouldRetryEvent(resp.Status):
 			logger.Debug("Retrying to index",

@@ -1,11 +1,10 @@
 elasticsearch:
-  endpoints: [https://elastic.example.com:9200]
+  endpoints: [https://opensearch.example.com:9200]
 elasticsearch/trace:
   tls:
     insecure: false
-  endpoints: [https://elastic.example.com:9200]
+  endpoints: [https://opensearch.example.com:9200]
   timeout: 2m
-  cloudid: TRNMxjXlNJEt
   headers:
     myheader: test
   traces_index: trace_index
@@ -25,7 +24,6 @@ elasticsearch/log:
   endpoints: [http://localhost:9200]
   logs_index: my_log_index
   timeout: 2m
-  cloudid: TRNMxjXlNJEt
   headers:
     myheader: test
   pipeline: mypipeline
