@@ -44,13 +44,13 @@ package objmodel // import "github.com/open-telemetry/opentelemetry-collector-co
 
 import (
 	"encoding/hex"
-	"github.com/elastic/go-structform"
 	"io"
 	"math"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/elastic/go-structform"
 	"github.com/elastic/go-structform/json"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 )

@@ -21,11 +21,11 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/cenkalti/backoff"
 	"io"
 	"net/http"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	opensearch "github.com/opensearch-project/opensearch-go/v2"
 	opensearchutil "github.com/opensearch-project/opensearch-go/v2/opensearchutil"
 	"go.uber.org/zap"

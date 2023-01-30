@@ -50,14 +50,6 @@ func TestTracesExporter_New(t *testing.T) {
 		}
 	}
 
-	//failWithMessage := func(msg string) validate {
-	//	return func(t *testing.T, exporter *elasticsearchTracesExporter, err error) {
-	//		require.Nil(t, exporter)
-	//		require.NotNil(t, err)
-	//		require.Contains(t, err.Error(), msg)
-	//	}
-	//}
-
 	tests := map[string]struct {
 		config *Config
 		want   validate
