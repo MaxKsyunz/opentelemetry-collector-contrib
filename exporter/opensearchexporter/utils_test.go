@@ -50,7 +50,7 @@ type httpTestError struct {
 	cause   error
 }
 
-const currentESVersion = "8.4.0"
+const opensearchVersion = "8.4.0"
 
 func (e *httpTestError) Error() string {
 	return fmt.Sprintf("http request failed (status=%v): %v", e.Status(), e.Message())
@@ -139,7 +139,7 @@ func newESTestServer(t *testing.T, bulkHandler bulkHandler) *httptest.Server {
 		enc := json.NewEncoder(w)
 		return enc.Encode(map[string]interface{}{
 			"version": map[string]interface{}{
-				"number": currentESVersion,
+				"number": opensearchVersion,
 			},
 		})
 	}))
