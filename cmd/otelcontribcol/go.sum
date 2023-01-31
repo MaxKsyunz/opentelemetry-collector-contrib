@@ -636,6 +636,7 @@ github.com/aws/aws-sdk-go v1.32.6/go.mod h1:5zCpMtNQVjRREroY7sYe8lOMRSxkhG6MZveU
 github.com/aws/aws-sdk-go v1.35.24/go.mod h1:tlPOdRjfxPBpNIwqDj61rmsnA85v9jc0Ps9+muhnW+k=
 github.com/aws/aws-sdk-go v1.38.35/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/aws/aws-sdk-go v1.40.45/go.mod h1:585smgzpB/KqRA+K3y/NL/oYRqQvpNJYvLm+LY1U59Q=
+github.com/aws/aws-sdk-go v1.44.180/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/aws/aws-sdk-go v1.44.185 h1:stasiou+Ucx2A0RyXRyPph4sLCBxVQK7DPPK8tNcl5g=
 github.com/aws/aws-sdk-go v1.44.185/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
 github.com/aws/aws-sdk-go-v2 v0.18.0/go.mod h1:JWVYvqSMppoMJC0x5wdwiImzgXTI9FuZwxzkQq9wy+g=
@@ -1920,6 +1921,8 @@ github.com/opencontainers/selinux v1.10.1 h1:09LIPVRP3uuZGQvgR+SgMSNBd1Eb3vlRbGq
 github.com/opencontainers/selinux v1.10.1/go.mod h1:2i0OySw99QjzBBQByd1Gr9gSjvuho1lHsJxIJ3gGbJI=
 github.com/openlyinc/pointy v1.2.0 h1:vbb/WoPbshyTH8j3/XYu3enlZfv+NHxAD15qTm1zbk0=
 github.com/openlyinc/pointy v1.2.0/go.mod h1:JodZOTJoBNaAQHeU0F/SwA4PL0lg4pKF7fYFpX291P0=
+github.com/opensearch-project/opensearch-go/v2 v2.2.0 h1:6RicCBiqboSVtLMjSiKgVQIsND4I3sxELg9uwWe/TKM=
+github.com/opensearch-project/opensearch-go/v2 v2.2.0/go.mod h1:R8NTTQMmfSRsmZdfEn2o9ZSuSXn0WTHPYhzgl7LCFLY=
 github.com/openshift/api v0.0.0-20210521075222-e273a339932a h1:aBPwLqCg66SbQd+HrjB1GhgTfPtqSY4aeB022tEYmE0=
 github.com/openshift/api v0.0.0-20210521075222-e273a339932a/go.mod h1:izBmoXbUu3z5kUa4FjZhvekTsyzIWiOoaIgJiZBBMQs=
 github.com/openshift/build-machinery-go v0.0.0-20210423112049-9415d7ebd33e/go.mod h1:b1BuldmJlbA/xYtdZvKi+7j5YGB44qJUJDZ9zwiNCfE=

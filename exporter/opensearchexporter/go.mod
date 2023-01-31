@@ -4,10 +4,10 @@ go 1.18
 
 require (
 	github.com/cenkalti/backoff/v4 v4.2.0
-	github.com/elastic/go-elasticsearch/v8 v8.5.0
 	github.com/elastic/go-structform v0.0.10
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/common v0.70.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.70.0
+	github.com/opensearch-project/opensearch-go/v2 v2.2.0
 	github.com/stretchr/testify v1.8.1
 	go.opentelemetry.io/collector v0.70.0
 	go.opentelemetry.io/collector/component v0.70.0
@@ -20,9 +20,8 @@ require (
 
 require (
 	github.com/benbjohnson/clock v1.3.0 // indirect
-	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
+	github.com/cenkalti/backoff/v4 v4.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/elastic/elastic-transport-go/v8 v8.1.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
@@ -32,7 +31,6 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
-	github.com/opensearch-project/opensearch-go/v2 v2.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	go.opencensus.io v0.24.0 // indirect
