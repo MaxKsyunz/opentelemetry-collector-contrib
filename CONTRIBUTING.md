@@ -106,8 +106,7 @@ and the rest of contributors.
 - Add a README.md on the root of your component describing its configuration and usage, likely referencing some of the
   yaml files used in the component tests. We also suggest that the yaml files used in tests have comments for all
   available configuration settings so users can copy and modify them as needed.
-- Add a `replace` directive at the root `go.mod` file so your component is included in the build of the contrib
-  executable.
+- Add a `replace` directive to `go.mod` files at the root `go.mod` file, in `cmd/otelcontribcol`, and `cmd/configschema` so your component is included in the build of the contrib executable.
 - Add your component to `versions.yaml`.
 - All components must be included in [`internal/components/`](./internal/components) and in the respective testing
   harnesses. To align with the test goal of the project, components must be testable within the framework defined within
