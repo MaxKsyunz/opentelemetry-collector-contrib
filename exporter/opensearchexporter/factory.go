@@ -26,14 +26,14 @@ import (
 
 const (
 	// The value of "type" key in configuration.
-	typeStr            = "elasticsearch"
+	typeStr            = "opensearch"
 	defaultLogsIndex   = "logs-generic-default"
 	defaultTracesIndex = "traces-generic-default"
 	// The stability level of the exporter.
 	stability = component.StabilityLevelBeta
 )
 
-// NewFactory creates a factory for Elastic exporter.
+// NewFactory creates a factory for OpenSearch exporter.
 func NewFactory() exporter.Factory {
 	return exporter.NewFactory(
 		typeStr,
@@ -48,7 +48,6 @@ func createDefaultConfig() component.Config {
 		HTTPClientSettings: HTTPClientSettings{
 			Timeout: 90 * time.Second,
 		},
-		Index:       "",
 		LogsIndex:   defaultLogsIndex,
 		TracesIndex: defaultTracesIndex,
 		Retry: RetrySettings{
@@ -67,19 +66,15 @@ func createDefaultConfig() component.Config {
 
 // createLogsExporter creates a new exporter for logs.
 //
-// Logs are directly indexed into Elasticsearch.
+// Logs are directly indexed into OpenSearch.
 func createLogsExporter(
 	ctx context.Context,
 	set exporter.CreateSettings,
 	cfg component.Config,
 ) (exporter.Logs, error) {
-	if cfg.(*Config).Index != "" {
-		set.Logger.Warn("index option are deprecated and replaced with logs_index and traces_index.")
-	}
-
 	exporter, err := newLogsExporter(set.Logger, cfg.(*Config))
 	if err != nil {
-		return nil, fmt.Errorf("cannot configure Elasticsearch logs exporter: %w", err)
+		return nil, fmt.Errorf("cannot configure OpenSearch logs exporter: %w", err)
 	}
 
 	return exporterhelper.NewLogsExporter(
@@ -97,7 +92,7 @@ func createTracesExporter(ctx context.Context,
 
 	exporter, err := newTracesExporter(set.Logger, cfg.(*Config))
 	if err != nil {
-		return nil, fmt.Errorf("cannot configure Elasticsearch traces exporter: %w", err)
+		return nil, fmt.Errorf("cannot configure OpenSearch traces exporter: %w", err)
 	}
 	return exporterhelper.NewTracesExporter(ctx, set, cfg, exporter.pushTraceData,
 		exporterhelper.WithShutdown(exporter.Shutdown))

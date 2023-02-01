@@ -15,7 +15,7 @@
 // The objmodel package provides tools for converting OpenTelemetry Log records into
 // JSON documents.
 //
-// The JSON parsing in Elasticsearch does not support parsing JSON documents
+// The JSON parsing in OpenSearch does not support parsing JSON documents
 // with duplicate fields. The fields in the docuemt can be sort and duplicate entries
 // can be removed before serializing. Deduplication ensures that ambigious
 // events can still be indexed.
@@ -34,11 +34,11 @@
 // The Document type also tries to combine these into a proper structure, such that these mixed
 // representations have a unique encoding only, which allows us to properly remove duplicates.
 //
-// The `.` is special to Elasticsearch. In order to handle common prefixes and attributes
+// The `.` is special to OpenSearch. In order to handle common prefixes and attributes
 // being a mix of key value pairs with dots and complex objects, we flatten the document first
 // before we deduplicate. Final dedotting is optional and only required when
 // Ingest Node is used. But either way, we try to present only well formed
-// document to Elasticsearch.
+// document to OpenSearch.
 
 package objmodel // import "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/opensearchexporter/internal/objmodel"
 
@@ -56,7 +56,7 @@ import (
 )
 
 // Document is an intermediate representation for converting open telemetry records with arbitrary attributes
-// into a JSON document that can be processed by Elasticsearch.
+// into a JSON document that can be processed by OpenSearch.
 type Document struct {
 	fields []field
 }
@@ -224,7 +224,7 @@ func (doc *Document) Dedup() {
 	// 3. mark duplicates as 'ignore'
 	//
 	//    This step ensures that we do not have duplicate fields names when serializing.
-	//    Elasticsearch JSON parser will fail otherwise.
+	//    OpenSearch JSON parser will fail otherwise.
 	for i := 0; i < len(doc.fields)-1; i++ {
 		if doc.fields[i].key == doc.fields[i+1].key {
 			doc.fields[i].value = ignoreValue

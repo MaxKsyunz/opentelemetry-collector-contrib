@@ -64,7 +64,6 @@ func TestFactory_CreateLogsAndTracesExporterWithDeprecatedIndexOption(t *testing
 	factory := NewFactory()
 	cfg := withDefaultConfig(func(cfg *Config) {
 		cfg.Endpoints = []string{"test:9200"}
-		cfg.Index = "test_index"
 	})
 	params := exportertest.NewNopCreateSettings()
 	logsExporter, err := factory.CreateLogsExporter(context.Background(), params, cfg)

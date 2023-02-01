@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package opensearchexporter contains an opentelemetry-collector exporter
-// for Elasticsearch.
+// for OpenSearch.
 package opensearchexporter // import "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/opensearchexporter"
 
 import (
@@ -26,7 +26,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type elasticsearchLogsExporter struct {
+type opensearchLogsExporter struct {
 	logger *zap.Logger
 
 	index       string
@@ -41,12 +41,12 @@ var retryOnStatus = []int{500, 502, 503, 504, 429}
 
 const createAction = "create"
 
-func newLogsExporter(logger *zap.Logger, cfg *Config) (*elasticsearchLogsExporter, error) {
+func newLogsExporter(logger *zap.Logger, cfg *Config) (*opensearchLogsExporter, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
 
-	client, err := newElasticsearchClient(logger, cfg)
+	client, err := newOpenSearchClient(logger, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -65,10 +65,8 @@ func newLogsExporter(logger *zap.Logger, cfg *Config) (*elasticsearchLogsExporte
 	model := &encodeModel{dedup: true, dedot: false}
 
 	indexStr := cfg.LogsIndex
-	if cfg.Index != "" {
-		indexStr = cfg.Index
-	}
-	esLogsExp := &elasticsearchLogsExporter{
+
+	logsExp := &opensearchLogsExporter{
 		logger:      logger,
 		client:      client,
 		bulkIndexer: bulkIndexer,
@@ -76,14 +74,14 @@ func newLogsExporter(logger *zap.Logger, cfg *Config) (*elasticsearchLogsExporte
 		maxAttempts: maxAttempts,
 		model:       model,
 	}
-	return esLogsExp, nil
+	return logsExp, nil
 }
 
-func (e *elasticsearchLogsExporter) Shutdown(ctx context.Context) error {
+func (e *opensearchLogsExporter) Shutdown(ctx context.Context) error {
 	return e.bulkIndexer.Close(ctx)
 }
 
-func (e *elasticsearchLogsExporter) pushLogsData(ctx context.Context, ld plog.Logs) error {
+func (e *opensearchLogsExporter) pushLogsData(ctx context.Context, ld plog.Logs) error {
 	var errs []error
 
 	rls := ld.ResourceLogs()
@@ -108,7 +106,7 @@ func (e *elasticsearchLogsExporter) pushLogsData(ctx context.Context, ld plog.Lo
 	return multierr.Combine(errs...)
 }
 
-func (e *elasticsearchLogsExporter) pushLogRecord(ctx context.Context, resource pcommon.Resource, record plog.LogRecord) error {
+func (e *opensearchLogsExporter) pushLogRecord(ctx context.Context, resource pcommon.Resource, record plog.LogRecord) error {
 	document, err := e.model.encodeLog(resource, record)
 	if err != nil {
 		return fmt.Errorf("Failed to encode log event: %w", err)

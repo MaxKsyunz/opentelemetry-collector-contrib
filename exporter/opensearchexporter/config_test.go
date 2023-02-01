@@ -25,53 +25,6 @@ import (
 	"go.opentelemetry.io/collector/confmap/confmaptest"
 )
 
-func TestLoad_DeprecatedIndexConfigOption(t *testing.T) {
-	cm, err := confmaptest.LoadConf(filepath.Join("testdata", "config-use-deprecated-index_option.yaml"))
-	require.NoError(t, err)
-	factory := NewFactory()
-	cfg := factory.CreateDefaultConfig()
-
-	sub, err := cm.Sub(component.NewIDWithName(typeStr, "log").String())
-	require.NoError(t, err)
-	require.NoError(t, component.UnmarshalConfig(sub, cfg))
-
-	assert.Equal(t, cfg, &Config{
-		Endpoints:   []string{"http://localhost:9200"},
-		Index:       "my_log_index",
-		LogsIndex:   "logs-generic-default",
-		TracesIndex: "traces-generic-default",
-		Pipeline:    "mypipeline",
-		HTTPClientSettings: HTTPClientSettings{
-			Authentication: AuthenticationSettings{
-				User:     "elastic",
-				Password: "search",
-				APIKey:   "AvFsEiPs==",
-			},
-			Timeout: 2 * time.Minute,
-			Headers: map[string]string{
-				"myheader": "test",
-			},
-		},
-		Discovery: DiscoverySettings{
-			OnStart: true,
-		},
-		Flush: FlushSettings{
-			Bytes: 10485760,
-		},
-		Retry: RetrySettings{
-			Enabled:         true,
-			MaxRequests:     5,
-			InitialInterval: 100 * time.Millisecond,
-			MaxInterval:     1 * time.Minute,
-		},
-		Mapping: MappingsSettings{
-			Mode:  "ecs",
-			Dedup: true,
-			Dedot: true,
-		},
-	})
-}
-
 func TestLoadConfig(t *testing.T) {
 	t.Parallel()
 
@@ -79,7 +32,7 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 
 	defaultCfg := createDefaultConfig()
-	defaultCfg.(*Config).Endpoints = []string{"https://elastic.example.com:9200"}
+	defaultCfg.(*Config).Endpoints = []string{"https://opensearch.example.com:9200"}
 
 	tests := []struct {
 		id       component.ID
@@ -92,16 +45,14 @@ func TestLoadConfig(t *testing.T) {
 		{
 			id: component.NewIDWithName(typeStr, "trace"),
 			expected: &Config{
-				Endpoints:   []string{"https://elastic.example.com:9200"},
-				Index:       "",
+				Endpoints:   []string{"https://opensearch.example.com:9200"},
 				LogsIndex:   "logs-generic-default",
 				TracesIndex: "trace_index",
 				Pipeline:    "mypipeline",
 				HTTPClientSettings: HTTPClientSettings{
 					Authentication: AuthenticationSettings{
-						User:     "elastic",
+						User:     "open",
 						Password: "search",
-						APIKey:   "AvFsEiPs==",
 					},
 					Timeout: 2 * time.Minute,
 					Headers: map[string]string{
@@ -131,15 +82,13 @@ func TestLoadConfig(t *testing.T) {
 			id: component.NewIDWithName(typeStr, "log"),
 			expected: &Config{
 				Endpoints:   []string{"http://localhost:9200"},
-				Index:       "",
 				LogsIndex:   "my_log_index",
 				TracesIndex: "traces-generic-default",
 				Pipeline:    "mypipeline",
 				HTTPClientSettings: HTTPClientSettings{
 					Authentication: AuthenticationSettings{
-						User:     "elastic",
+						User:     "open",
 						Password: "search",
-						APIKey:   "AvFsEiPs==",
 					},
 					Timeout: 2 * time.Minute,
 					Headers: map[string]string{

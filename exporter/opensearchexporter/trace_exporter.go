@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package opensearchexporter contains an opentelemetry-collector exporter
-// for Elasticsearch.
+// for OpenSearch.
 package opensearchexporter // import "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/opensearchexporter"
 
 import (
@@ -26,7 +26,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type elasticsearchTracesExporter struct {
+type opensearchTracesExporter struct {
 	logger *zap.Logger
 
 	index       string
@@ -37,12 +37,12 @@ type elasticsearchTracesExporter struct {
 	model       mappingModel
 }
 
-func newTracesExporter(logger *zap.Logger, cfg *Config) (*elasticsearchTracesExporter, error) {
+func newTracesExporter(logger *zap.Logger, cfg *Config) (*opensearchTracesExporter, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}
 
-	client, err := newElasticsearchClient(logger, cfg)
+	client, err := newOpenSearchClient(logger, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +60,7 @@ func newTracesExporter(logger *zap.Logger, cfg *Config) (*elasticsearchTracesExp
 	// TODO: Apply encoding and field mapping settings.
 	model := &encodeModel{dedup: true, dedot: false}
 
-	return &elasticsearchTracesExporter{
+	return &opensearchTracesExporter{
 		logger:      logger,
 		client:      client,
 		bulkIndexer: bulkIndexer,
@@ -71,11 +71,11 @@ func newTracesExporter(logger *zap.Logger, cfg *Config) (*elasticsearchTracesExp
 	}, nil
 }
 
-func (e *elasticsearchTracesExporter) Shutdown(ctx context.Context) error {
+func (e *opensearchTracesExporter) Shutdown(ctx context.Context) error {
 	return e.bulkIndexer.Close(ctx)
 }
 
-func (e *elasticsearchTracesExporter) pushTraceData(
+func (e *opensearchTracesExporter) pushTraceData(
 	ctx context.Context,
 	td ptrace.Traces,
 ) error {
@@ -101,7 +101,7 @@ func (e *elasticsearchTracesExporter) pushTraceData(
 	return multierr.Combine(errs...)
 }
 
-func (e *elasticsearchTracesExporter) pushTraceRecord(ctx context.Context, resource pcommon.Resource, span ptrace.Span) error {
+func (e *opensearchTracesExporter) pushTraceRecord(ctx context.Context, resource pcommon.Resource, span ptrace.Span) error {
 	document, err := e.model.encodeSpan(resource, span)
 	if err != nil {
 		return fmt.Errorf("Failed to encode trace record: %w", err)

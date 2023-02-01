@@ -25,24 +25,16 @@ import (
 	"go.opentelemetry.io/collector/config/configtls"
 )
 
-// Config defines configuration for Elastic exporter.
+// Config defines configuration for OpenSearch exporter.
 type Config struct {
 
-	// Endpoints holds the Elasticsearch URLs the exporter should send events to.
+	// Endpoints holds the OpenSearch URLs the exporter should send events to.
 	//
-	// ELASTICSEARCH_URL environment variable is not set.
+	// OPENSEARCH_URL environment variable is not set.
 	Endpoints []string `mapstructure:"endpoints"`
 
 	// NumWorkers configures the number of workers publishing bulk requests.
 	NumWorkers int `mapstructure:"num_workers"`
-
-	// Index configures the index, index alias, or data stream name events should be indexed in.
-	//
-	// https://www.elastic.co/guide/en/elasticsearch/reference/current/indices.html
-	// https://www.elastic.co/guide/en/elasticsearch/reference/current/data-streams.html
-	//
-	// Deprecated: `index` is deprecated and replaced with `logs_index`.
-	Index string `mapstructure:"index"`
 
 	// This setting is required when logging pipelines used.
 	LogsIndex string `mapstructure:"logs_index"`
@@ -52,8 +44,6 @@ type Config struct {
 
 	// Pipeline configures the ingest node pipeline name that should be used to process the
 	// events.
-	//
-	// https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html
 	Pipeline string `mapstructure:"pipeline"`
 
 	HTTPClientSettings `mapstructure:",squash"`
@@ -89,34 +79,29 @@ type AuthenticationSettings struct {
 
 	// Password is used to configure HTTP Basic Authentication.
 	Password configopaque.String `mapstructure:"password"`
-
-	// APIKey is used to configure ApiKey based Authentication.
-	//
-	// https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-create-api-key.html
-	APIKey configopaque.String `mapstructure:"api_key"`
 }
 
-// DiscoverySettings defines Elasticsearch node discovery related settings.
-// The exporter will check Elasticsearch regularly for available nodes
+// DiscoverySettings defines OpenSearch node discovery related settings.
+// The exporter will check OpenSearch regularly for available nodes
 // and updates the list of hosts if discovery is enabled. Newly discovered
 // nodes will automatically be used for load balancing.
 //
-// DiscoverySettings should not be enabled when operating Elasticsearch behind a proxy
+// DiscoverySettings should not be enabled when operating OpenSearch behind a proxy
 // or load balancer.
 //
 // https://www.elastic.co/blog/elasticsearch-sniffing-best-practices-what-when-why-how
 type DiscoverySettings struct {
-	// OnStart, if set, instructs the exporter to look for available Elasticsearch
+	// OnStart, if set, instructs the exporter to look for available OpenSearch
 	// nodes the first time the exporter connects to the cluster.
 	OnStart bool `mapstructure:"on_start"`
 
-	// Interval instructs the exporter to renew the list of Elasticsearch URLs
+	// Interval instructs the exporter to renew the list of OpenSearch URLs
 	// with the given interval. URLs will not be updated if Interval is <=0.
 	Interval time.Duration `mapstructure:"interval"`
 }
 
 // FlushSettings  defines settings for configuring the write buffer flushing
-// policy in the Elasticsearch exporter. The exporter sends a bulk request with
+// policy in the OpenSearch exporter. The exporter sends a bulk request with
 // all events already serialized into the send-buffer.
 type FlushSettings struct {
 	// Bytes sets the send buffer flushing limit.
@@ -126,7 +111,7 @@ type FlushSettings struct {
 	Interval time.Duration `mapstructure:"interval"`
 }
 
-// RetrySettings defines settings for the HTTP request retries in the Elasticsearch exporter.
+// RetrySettings defines settings for the HTTP request retries in the OpenSearch exporter.
 // Failed sends are retried with exponential backoff.
 type RetrySettings struct {
 	// Enabled allows users to disable retry without having to comment out all settings.
@@ -198,12 +183,12 @@ var mappingModes = func() map[string]MappingMode {
 	return table
 }()
 
-const defaultElasticsearchEnvName = "ELASTICSEARCH_URL"
+const defaultOpenSearchEnvName = "OPENSEARCH_URL"
 
-// Validate validates the elasticsearch server configuration.
+// Validate validates the opensearch server configuration.
 func (cfg *Config) Validate() error {
 	if len(cfg.Endpoints) == 0 {
-		if os.Getenv(defaultElasticsearchEnvName) == "" {
+		if os.Getenv(defaultOpenSearchEnvName) == "" {
 			return errConfigNoEndpoint
 		}
 	}

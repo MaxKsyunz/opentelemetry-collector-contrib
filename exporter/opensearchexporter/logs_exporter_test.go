@@ -32,22 +32,15 @@ import (
 )
 
 func TestExporter_New(t *testing.T) {
-	type validate func(*testing.T, *elasticsearchLogsExporter, error)
+	type validate func(*testing.T, *opensearchLogsExporter, error)
 
-	success := func(t *testing.T, exporter *elasticsearchLogsExporter, err error) {
+	success := func(t *testing.T, exporter *opensearchLogsExporter, err error) {
 		require.Nil(t, err)
 		require.NotNil(t, exporter)
 	}
-	successWithDeprecatedIndexOption := func(index string) validate {
-		return func(t *testing.T, exporter *elasticsearchLogsExporter, err error) {
-			require.Nil(t, err)
-			require.NotNil(t, exporter)
-			require.EqualValues(t, index, exporter.index)
-		}
-	}
 
 	failWith := func(want error) validate {
-		return func(t *testing.T, exporter *elasticsearchLogsExporter, err error) {
+		return func(t *testing.T, exporter *opensearchLogsExporter, err error) {
 			require.Nil(t, exporter)
 			require.NotNil(t, err)
 			if !errors.Is(err, want) {
@@ -65,10 +58,10 @@ func TestExporter_New(t *testing.T) {
 			config: withDefaultConfig(),
 			want:   failWith(errConfigNoEndpoint),
 		},
-		"create from default config with ELASTICSEARCH_URL environment variable": {
+		"create from default config with OPENSEARCH_URL environment variable": {
 			config: withDefaultConfig(),
 			want:   success,
-			env:    map[string]string{defaultElasticsearchEnvName: "localhost:9200"},
+			env:    map[string]string{defaultOpenSearchEnvName: "localhost:9200"},
 		},
 		"create from default with endpoints": {
 			config: withDefaultConfig(func(cfg *Config) {
@@ -76,13 +69,7 @@ func TestExporter_New(t *testing.T) {
 			}),
 			want: success,
 		},
-		"create from default config with endpoints and deprecated index_option": {
-			config: withDefaultConfig(func(cfg *Config) {
-				cfg.Index = "foo-index"
-				cfg.Endpoints = []string{"test:9200"}
-			}),
-			want: successWithDeprecatedIndexOption("foo-index"),
-		},
+
 		"create with custom request header": {
 			config: withDefaultConfig(func(cfg *Config) {
 				cfg.Endpoints = []string{"test:9200"}
@@ -98,7 +85,7 @@ func TestExporter_New(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			env := test.env
 			if len(env) == 0 {
-				env = map[string]string{defaultElasticsearchEnvName: ""}
+				env = map[string]string{defaultOpenSearchEnvName: ""}
 			}
 
 			for k, v := range env {
@@ -123,7 +110,7 @@ func TestExporter_PushEvent(t *testing.T) {
 	}
 	t.Run("publish with success", func(t *testing.T) {
 		rec := newBulkRecorder()
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			rec.Record(docs)
 			return itemsAllOK(docs)
 		})
@@ -138,7 +125,7 @@ func TestExporter_PushEvent(t *testing.T) {
 	t.Run("retry http request", func(t *testing.T) {
 		failures := 0
 		rec := newBulkRecorder()
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			if failures == 0 {
 				failures++
 				return nil, &httpTestError{message: "oops"}
@@ -191,7 +178,7 @@ func TestExporter_PushEvent(t *testing.T) {
 					t.Run(name, func(t *testing.T) {
 						t.Parallel()
 						attempts := atomic.NewInt64(0)
-						server := newESTestServer(t, handler(attempts))
+						server := newTestServer(t, handler(attempts))
 
 						testConfig := configurer(server.URL)
 						exporter := newTestExporter(t, server.URL, func(cfg *Config) { *cfg = *testConfig })
@@ -207,7 +194,7 @@ func TestExporter_PushEvent(t *testing.T) {
 
 	t.Run("do not retry invalid request", func(t *testing.T) {
 		attempts := atomic.NewInt64(0)
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			attempts.Inc()
 			return nil, &httpTestError{message: "oops", status: http.StatusBadRequest}
 		})
@@ -222,7 +209,7 @@ func TestExporter_PushEvent(t *testing.T) {
 	t.Run("retry single item", func(t *testing.T) {
 		var attempts int
 		rec := newBulkRecorder()
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			attempts++
 
 			if attempts == 1 {
@@ -241,7 +228,7 @@ func TestExporter_PushEvent(t *testing.T) {
 
 	t.Run("do not retry bad item", func(t *testing.T) {
 		attempts := atomic.NewInt64(0)
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			attempts.Inc()
 			return itemsReportStatus(docs, http.StatusBadRequest)
 		})
@@ -260,7 +247,7 @@ func TestExporter_PushEvent(t *testing.T) {
 
 		const retryIdx = 1
 
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			resp := make([]itemResponse, len(docs))
 			for i, doc := range docs {
 				resp[i].Status = http.StatusOK
@@ -297,7 +284,7 @@ func TestExporter_PushEvent(t *testing.T) {
 	})
 }
 
-func newTestExporter(t *testing.T, url string, fns ...func(*Config)) *elasticsearchLogsExporter {
+func newTestExporter(t *testing.T, url string, fns ...func(*Config)) *opensearchLogsExporter {
 	exporter, err := newLogsExporter(zaptest.NewLogger(t), withTestExporterConfig(fns...)(url))
 	require.NoError(t, err)
 
@@ -320,7 +307,7 @@ func withTestExporterConfig(fns ...func(*Config)) func(string) *Config {
 	}
 }
 
-func mustSend(t *testing.T, exporter *elasticsearchLogsExporter, contents string) {
+func mustSend(t *testing.T, exporter *opensearchLogsExporter, contents string) {
 	err := pushDocuments(context.TODO(), zap.L(), exporter.index, []byte(contents), exporter.bulkIndexer, exporter.maxAttempts)
 	require.NoError(t, err)
 }

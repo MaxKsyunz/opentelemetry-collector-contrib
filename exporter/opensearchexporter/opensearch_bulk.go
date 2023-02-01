@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // Package opensearchexporter contains an opentelemetry-collector exporter
-// for Elasticsearch.
+// for OpenSearch.
 package opensearchexporter // import "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/opensearchexporter"
 
 import (
@@ -25,7 +25,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/cenkalti/backoff/v4"
 	opensearch "github.com/opensearch-project/opensearch-go/v2"
 	opensearchutil "github.com/opensearch-project/opensearch-go/v2/opensearchutil"
 	"go.uber.org/zap"
@@ -39,8 +39,6 @@ type osBulkIndexerCurrent = opensearchutil.BulkIndexer
 type osBulkIndexerItem = opensearchutil.BulkIndexerItem
 type osBulkIndexerResponseItem = opensearchutil.BulkIndexerResponseItem
 
-// clientLogger implements the estransport.Logger interface
-// that is required by the Elasticsearch client for logging.
 type clientLogger zap.Logger
 
 // LogRoundTrip should not modify the request or response, except for consuming and closing the body.
@@ -74,7 +72,7 @@ func (*clientLogger) ResponseBodyEnabled() bool {
 	return false
 }
 
-func newElasticsearchClient(logger *zap.Logger, config *Config) (*osClientCurrent, error) {
+func newOpenSearchClient(logger *zap.Logger, config *Config) (*osClientCurrent, error) {
 	tlsCfg, err := config.TLSClientSetting.LoadTLSConfig()
 	if err != nil {
 		return nil, err
@@ -113,7 +111,7 @@ func newElasticsearchClient(logger *zap.Logger, config *Config) (*osClientCurren
 		RetryOnStatus: retryOnStatus,
 		DisableRetry:  retryDisabled,
 		MaxRetries:    maxRetries,
-		RetryBackoff:  createElasticsearchBackoffFunc(&config.Retry),
+		RetryBackoff:  createBackoffFunction(&config.Retry),
 
 		// configure sniffing
 		DiscoverNodesOnStart:  config.Discovery.OnStart,
@@ -157,7 +155,7 @@ func newBulkIndexer(logger *zap.Logger, client *opensearch.Client, config *Confi
 	})
 }
 
-func createElasticsearchBackoffFunc(config *RetrySettings) func(int) time.Duration {
+func createBackoffFunction(config *RetrySettings) func(int) time.Duration {
 	if !config.Enabled {
 		return nil
 	}

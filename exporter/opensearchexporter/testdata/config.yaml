@@ -1,6 +1,6 @@
-elasticsearch:
+opensearch:
   endpoints: [https://opensearch.example.com:9200]
-elasticsearch/trace:
+opensearch/trace:
   tls:
     insecure: false
   endpoints: [https://opensearch.example.com:9200]
@@ -9,7 +9,7 @@ elasticsearch/trace:
     myheader: test
   traces_index: trace_index
   pipeline: mypipeline
-  user: elastic
+  user: open
   password: search
   api_key: AvFsEiPs==
   discover:
@@ -18,7 +18,7 @@ elasticsearch/trace:
     bytes: 10485760
   retry:
     max_requests: 5
-elasticsearch/log:
+opensearch/log:
   tls:
     insecure: false
   endpoints: [http://localhost:9200]
@@ -27,7 +27,7 @@ elasticsearch/log:
   headers:
     myheader: test
   pipeline: mypipeline
-  user: elastic
+  user: open
   password: search
   api_key: AvFsEiPs==
   discover:

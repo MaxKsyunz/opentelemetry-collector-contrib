@@ -33,15 +33,15 @@ import (
 )
 
 func TestTracesExporter_New(t *testing.T) {
-	type validate func(*testing.T, *elasticsearchTracesExporter, error)
+	type validate func(*testing.T, *opensearchTracesExporter, error)
 
-	success := func(t *testing.T, exporter *elasticsearchTracesExporter, err error) {
+	success := func(t *testing.T, exporter *opensearchTracesExporter, err error) {
 		require.Nil(t, err)
 		require.NotNil(t, exporter)
 	}
 
 	failWith := func(want error) validate {
-		return func(t *testing.T, exporter *elasticsearchTracesExporter, err error) {
+		return func(t *testing.T, exporter *opensearchTracesExporter, err error) {
 			require.Nil(t, exporter)
 			require.NotNil(t, err)
 			if !errors.Is(err, want) {
@@ -59,10 +59,10 @@ func TestTracesExporter_New(t *testing.T) {
 			config: withDefaultConfig(),
 			want:   failWith(errConfigNoEndpoint),
 		},
-		"create from default config with ELASTICSEARCH_URL environment variable": {
+		"create from default config with OPENSEARCH_URL environment variable": {
 			config: withDefaultConfig(),
 			want:   success,
-			env:    map[string]string{defaultElasticsearchEnvName: "localhost:9200"},
+			env:    map[string]string{defaultOpenSearchEnvName: "localhost:9200"},
 		},
 		"create from default with endpoints": {
 			config: withDefaultConfig(func(cfg *Config) {
@@ -76,7 +76,7 @@ func TestTracesExporter_New(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			env := test.env
 			if len(env) == 0 {
-				env = map[string]string{defaultElasticsearchEnvName: ""}
+				env = map[string]string{defaultOpenSearchEnvName: ""}
 			}
 
 			oldEnv := make(map[string]string, len(env))
@@ -111,7 +111,7 @@ func TestExporter_PushTraceRecord(t *testing.T) {
 	}
 	t.Run("publish with success", func(t *testing.T) {
 		rec := newBulkRecorder()
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			rec.Record(docs)
 			return itemsAllOK(docs)
 		})
@@ -126,7 +126,7 @@ func TestExporter_PushTraceRecord(t *testing.T) {
 	t.Run("retry http request", func(t *testing.T) {
 		failures := 0
 		rec := newBulkRecorder()
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			if failures == 0 {
 				failures++
 				return nil, &httpTestError{message: "oops"}
@@ -179,7 +179,7 @@ func TestExporter_PushTraceRecord(t *testing.T) {
 					t.Run(name, func(t *testing.T) {
 						t.Parallel()
 						attempts := atomic.NewInt64(0)
-						server := newESTestServer(t, handler(attempts))
+						server := newTestServer(t, handler(attempts))
 
 						testConfig := configurer(server.URL)
 						exporter := newTestTracesExporter(t, server.URL, func(cfg *Config) { *cfg = *testConfig })
@@ -195,7 +195,7 @@ func TestExporter_PushTraceRecord(t *testing.T) {
 
 	t.Run("do not retry invalid request", func(t *testing.T) {
 		attempts := atomic.NewInt64(0)
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			attempts.Inc()
 			return nil, &httpTestError{message: "oops", status: http.StatusBadRequest}
 		})
@@ -210,7 +210,7 @@ func TestExporter_PushTraceRecord(t *testing.T) {
 	t.Run("retry single item", func(t *testing.T) {
 		var attempts int
 		rec := newBulkRecorder()
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			attempts++
 
 			if attempts == 1 {
@@ -229,7 +229,7 @@ func TestExporter_PushTraceRecord(t *testing.T) {
 
 	t.Run("do not retry bad item", func(t *testing.T) {
 		attempts := atomic.NewInt64(0)
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			attempts.Inc()
 			return itemsReportStatus(docs, http.StatusBadRequest)
 		})
@@ -248,7 +248,7 @@ func TestExporter_PushTraceRecord(t *testing.T) {
 
 		const retryIdx = 1
 
-		server := newESTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
+		server := newTestServer(t, func(docs []itemRequest) ([]itemResponse, error) {
 			resp := make([]itemResponse, len(docs))
 			for i, doc := range docs {
 				resp[i].Status = http.StatusOK
@@ -285,7 +285,7 @@ func TestExporter_PushTraceRecord(t *testing.T) {
 	})
 }
 
-func newTestTracesExporter(t *testing.T, url string, fns ...func(*Config)) *elasticsearchTracesExporter {
+func newTestTracesExporter(t *testing.T, url string, fns ...func(*Config)) *opensearchTracesExporter {
 	exporter, err := newTracesExporter(zaptest.NewLogger(t), withTestTracesExporterConfig(fns...)(url))
 	require.NoError(t, err)
 
@@ -308,7 +308,7 @@ func withTestTracesExporterConfig(fns ...func(*Config)) func(string) *Config {
 	}
 }
 
-func mustSendTraces(t *testing.T, exporter *elasticsearchTracesExporter, contents string) {
+func mustSendTraces(t *testing.T, exporter *opensearchTracesExporter, contents string) {
 	err := pushDocuments(context.TODO(), zap.L(), exporter.index, []byte(contents), exporter.bulkIndexer, exporter.maxAttempts)
 	require.NoError(t, err)
 }
