@@ -39,7 +39,6 @@ func TestLoadConfig(t *testing.T) {
 				Endpoints:   []string{"https://opensearch.example.com:9200"},
 				LogsIndex:   "logs-generic-default",
 				TracesIndex: "trace_index",
-				Pipeline:    "mypipeline",
 				HTTPClientSettings: HTTPClientSettings{
 					Authentication: AuthenticationSettings{
 						User:     "open",
@@ -73,7 +72,6 @@ func TestLoadConfig(t *testing.T) {
 				Endpoints:   []string{"http://localhost:9200"},
 				LogsIndex:   "my_log_index",
 				TracesIndex: "traces-generic-default",
-				Pipeline:    "mypipeline",
 				HTTPClientSettings: HTTPClientSettings{
 					Authentication: AuthenticationSettings{
 						User:     "open",
@@ -107,7 +105,6 @@ func TestLoadConfig(t *testing.T) {
 				Endpoints:   []string{"http://localhost:9200"},
 				LogsIndex:   "my_log_index",
 				TracesIndex: "traces-generic-default",
-				Pipeline:    "mypipeline",
 				HTTPClientSettings: HTTPClientSettings{
 					Authentication: AuthenticationSettings{
 						User:     "open",

@@ -8,7 +8,6 @@ opensearch/trace:
   headers:
     myheader: test
   traces_index: trace_index
-  pipeline: mypipeline
   user: open
   password: search
   flush:
@@ -23,7 +22,6 @@ opensearch/log:
   timeout: 2m
   headers:
     myheader: test
-  pipeline: mypipeline
   user: open
   password: search
   flush:
@@ -38,7 +36,6 @@ opensearch/bad_mode:
   timeout: 2m
   headers:
     myheader: test
-  pipeline: mypipeline
   user: open
   password: search
   flush:

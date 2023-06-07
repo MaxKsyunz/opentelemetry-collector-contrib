@@ -131,7 +131,6 @@ func newBulkIndexer(logger *zap.Logger, client *opensearch.Client, config *Confi
 		FlushBytes:    config.Flush.Bytes,
 		FlushInterval: config.Flush.Interval,
 		Client:        client,
-		Pipeline:      config.Pipeline,
 		Timeout:       config.Timeout,
 
 		OnError: func(_ context.Context, err error) {

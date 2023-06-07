@@ -34,10 +34,6 @@ type Config struct {
 	// This setting is required when traces pipelines used.
 	TracesIndex string `mapstructure:"traces_index"`
 
-	// Pipeline ingest node pipeline name that should be used to process the
-	// events.
-	Pipeline string `mapstructure:"pipeline"`
-
 	HTTPClientSettings `mapstructure:",squash"`
 	Retry              RetrySettings    `mapstructure:"retry"`
 	Flush              FlushSettings    `mapstructure:"flush"`
